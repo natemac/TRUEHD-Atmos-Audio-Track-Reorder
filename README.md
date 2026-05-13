@@ -1,5 +1,8 @@
 # mkv-audio-reorder
 
+<img width="1118" height="630" alt="image" src="https://github.com/user-attachments/assets/2f193d94-670d-4966-b4f6-20fbb461caad" />
+<img width="1117" height="623" alt="image" src="https://github.com/user-attachments/assets/2804f3c7-d4ae-44b4-8c43-46da9555ba38" />
+
 Windows drag-and-drop tools for losslessly reordering audio tracks in MKV files.
 
 Built for prepping Plex libraries: a lot of remote clients can direct-play AC-3 / E-AC-3 but transcode TrueHD/Atmos. Moving the compressed core track to position 1 and marking it default fixes that without re-encoding anything.
