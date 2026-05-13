@@ -2,11 +2,18 @@
 setlocal EnableDelayedExpansion
 
 set "SCRIPT_DIR=%~dp0"
-set "PS_SCRIPT=%SCRIPT_DIR%mkv-batch-reorder.ps1"
+set "PS_SINGLE=%SCRIPT_DIR%mkv-reorder.ps1"
+set "PS_BATCH=%SCRIPT_DIR%mkv-batch-reorder.ps1"
 
-if not exist "%PS_SCRIPT%" (
+if not exist "%PS_SINGLE%" (
+    echo ERROR: mkv-reorder.ps1 not found next to this batch file.
+    echo Expected: %PS_SINGLE%
+    pause
+    exit /b 1
+)
+if not exist "%PS_BATCH%" (
     echo ERROR: mkv-batch-reorder.ps1 not found next to this batch file.
-    echo Expected: %PS_SCRIPT%
+    echo Expected: %PS_BATCH%
     pause
     exit /b 1
 )
@@ -66,25 +73,19 @@ goto checkdeps
 if "%~1"=="" (
     echo.
     echo Usage:
-    echo   Drag a FOLDER of movies onto this batch file, or run:
-    echo   mkv-batch-reorder.bat "path\to\folder" [--no-backup] [--dry-run]
-    echo                                          [--filter "TrueHD Atmos"]
-    echo                                          [--no-log] [--log-path "path\to\log.csv"]
+    echo   Drag an MKV file or folder onto this batch file.
+    echo   File:   reorders audio tracks in a single MKV.
+    echo   Folder: scans recursively and batch-processes matching MKVs.
     echo.
     pause
     exit /b 1
 )
 
-if not exist "%~1\" (
-    echo.
-    echo ERROR: Not a folder: %~1
-    echo This tool processes folders. Use mkv-reorder.bat for a single file.
-    echo.
-    pause
-    exit /b 1
+if exist "%~1\" (
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS_BATCH%" -FolderPath "%~1" %2 %3 %4 %5 %6 %7 %8
+) else (
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS_SINGLE%" -FilePath "%~1" %2 %3 %4 %5 %6
 )
-
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%PS_SCRIPT%" -FolderPath "%~1" %2 %3 %4 %5 %6 %7 %8
 set "PSEXIT=%ERRORLEVEL%"
 
 echo.

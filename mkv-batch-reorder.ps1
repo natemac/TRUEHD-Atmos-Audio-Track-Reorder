@@ -126,8 +126,16 @@ function Invoke-Remux($mkvmerge, $file, $info, $chosenId, $noBackup, $dryRun) {
     }
 
     $start = Get-Date
-    & $mkvmerge @mkvmergeArgs | Out-Null
-    $exitCode = $LASTEXITCODE
+    try {
+        & $mkvmerge @mkvmergeArgs | Out-Null
+        $exitCode = $LASTEXITCODE
+    } catch {
+        $elapsed = (Get-Date) - $start
+        if (Test-Path -LiteralPath $tempFile -ErrorAction SilentlyContinue) {
+            Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+        }
+        return [pscustomobject]@{ Ok = $false; Elapsed = $elapsed; Error = "mkvmerge could not start: $_"; DryRun = $false }
+    }
     $elapsed = (Get-Date) - $start
 
     if ($exitCode -ne 0) {
@@ -182,6 +190,24 @@ Write-Host "Found $($mkvFiles.Count) .mkv files."
 if ($mkvFiles.Count -eq 0) {
     Write-Host "Nothing to scan. Exiting."
     exit 0
+}
+
+# --- Choose filter interactively if not passed as a parameter ---
+if (-not $PSBoundParameters.ContainsKey('Filter')) {
+    Write-Host ""
+    Write-Host "Filter by first audio track codec:"
+    Write-Host "  [1] TrueHD Atmos        (Atmos only)"
+    Write-Host "  [2] TrueHD              (any TrueHD, including Atmos)"
+    Write-Host "  [3] DTS                 (DTS, DTS-HD Master Audio, etc.)"
+    Write-Host "  [4] Any                 (all MKVs regardless of codec)"
+    Write-Host ""
+    $filterChoice = (Read-Host "Choice [1]").Trim()
+    switch ($filterChoice) {
+        '2' { $Filter = 'TrueHD' }
+        '3' { $Filter = 'DTS' }
+        '4' { $Filter = '.' }
+        default { $Filter = 'TrueHD Atmos' }
+    }
 }
 
 # --- Scan for candidates (first audio matches filter) ---
